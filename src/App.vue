@@ -1,13 +1,13 @@
 <template>
   <div id="app">
-    <!-- Formulario de conexión -->
+    <!-- Connection form -->
     <div v-if="!connected" class="connection-form">
       <div class="card">
         <h1>🔌 WebSocket Tester</h1>
-        <p class="subtitle">Conéctate a Reverb</p>
+        <p class="subtitle">Connect to Reverb</p>
         
         <div v-if="authError" class="error-message">
-          <strong>❌ Error de autenticación</strong>
+          <strong>❌ Authentication Error</strong>
           <p>{{ authError }}</p>
         </div>
 
@@ -22,7 +22,7 @@
         </div>
 
         <div class="form-group">
-          <label>Puerto</label>
+          <label>Port</label>
           <input 
             v-model.number="port" 
             type="number" 
@@ -42,75 +42,75 @@
         </div>
         
         <div class="form-group">
-          <label>Token de Acceso</label>
+          <label>Access Token</label>
           <input 
             v-model="token" 
             type="text" 
-            placeholder="Ingresa tu token"
+            placeholder="Enter your token"
             @keyup.enter="connect"
           />
         </div>
 
         <div class="form-group">
-          <label>Tipo de Canal</label>
+          <label>Channel Type</label>
           <select v-model="channelType" class="channel-type-select">
-            <option value="public">Público</option>
-            <option value="private">Privado (private-)</option>
-            <option value="presence">Presencia (presence-)</option>
+            <option value="public">Public</option>
+            <option value="private">Private (private-)</option>
+            <option value="presence">Presence (presence-)</option>
           </select>
         </div>
 
         <div class="form-group">
-          <label>Nombre del Canal</label>
+          <label>Channel Name</label>
           <div class="input-with-prefix">
             <span class="prefix" v-if="channelPrefix">{{ channelPrefix }}</span>
             <input 
               v-model="channelName" 
               type="text" 
-              placeholder="nombre-del-canal"
+              placeholder="channel-name"
               @keyup.enter="connect"
             />
           </div>
         </div>
 
         <button @click="connect" class="btn-primary" :disabled="!token || !channelName || !host || !port || !appKey || connecting">
-          {{ connecting ? 'Conectando...' : 'Conectar' }}
+          {{ connecting ? 'Connecting...' : 'Connect' }}
         </button>
 
         <div class="config-info">
-          <p><strong>Endpoint de autenticación:</strong> {{ config.auth.endpoint }}</p>
+          <p><strong>Auth endpoint:</strong> {{ config.auth.endpoint }}</p>
         </div>
       </div>
     </div>
 
-    <!-- Panel de eventos -->
+    <!-- Events panel -->
     <div v-else class="events-panel">
       <div class="header">
         <div class="connection-info">
           <span class="status-dot"></span>
-          <span>Conectado a: <strong>{{ currentChannel }}</strong></span>
+          <span>Connected to: <strong>{{ currentChannel }}</strong></span>
         </div>
-        <button @click="disconnect" class="btn-disconnect">Desconectar</button>
+        <button @click="disconnect" class="btn-disconnect">Disconnect</button>
       </div>
 
       <div class="controls">
         <div class="change-channel">
           <select v-model="newChannelType" class="channel-type-select">
-            <option value="public">Público</option>
-            <option value="private">Privado</option>
-            <option value="presence">Presencia</option>
+            <option value="public">Public</option>
+            <option value="private">Private</option>
+            <option value="presence">Presence</option>
           </select>
           <div class="input-with-prefix">
             <span class="prefix" v-if="newChannelPrefix">{{ newChannelPrefix }}</span>
             <input 
               v-model="newChannelName" 
               type="text" 
-              placeholder="nuevo-canal"
+              placeholder="new-channel"
               @keyup.enter="changeChannel"
             />
           </div>
           <button @click="changeChannel" class="btn-secondary" :disabled="!newChannelName">
-            Cambiar Canal
+            Change Channel
           </button>
         </div>
 
@@ -118,25 +118,64 @@
           <input 
             v-model="newToken" 
             type="text" 
-            placeholder="Nuevo token"
+            placeholder="New token"
             @keyup.enter="changeToken"
           />
           <button @click="changeToken" class="btn-secondary" :disabled="!newToken">
-            Cambiar Token
+            Change Token
           </button>
         </div>
 
-        <button @click="clearEvents" class="btn-clear">Limpiar Eventos</button>
+        <button @click="clearEvents" class="btn-clear">Clear Events</button>
+      </div>
+
+      <div class="send-event-form">
+        <div class="send-event-header">
+          <h3>📤 Send Event</h3>
+          <p class="send-event-subtitle">Send client events using whisper (private & presence channels only)</p>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Event Name</label>
+            <input 
+              v-model="eventName" 
+              type="text" 
+              placeholder="MyCustomEvent"
+              @keyup.enter="sendEvent"
+            />
+          </div>
+          <div class="form-group form-group-wide">
+            <label>Event Data (JSON)</label>
+            <textarea 
+              v-model="eventData" 
+              placeholder='{"message": "Hello world", "user": "John"}'
+              rows="4"
+            ></textarea>
+          </div>
+          <div class="button-wrapper">
+            <button @click="sendEvent" class="btn-send" :disabled="!eventName || sending">
+              <span v-if="!sending">🚀 Send Event</span>
+              <span v-else>⏳ Sending...</span>
+            </button>
+          </div>
+        </div>
+        <div v-if="sendError" class="error-message">
+          <strong>❌ Error sending event</strong>
+          <p>{{ sendError }}</p>
+        </div>
+        <div v-if="sendSuccess" class="success-message">
+          <strong>✅ Event sent successfully</strong>
+        </div>
       </div>
 
       <div class="events-container">
         <div class="events-header">
-          <h3>Eventos Recibidos ({{ events.length }})</h3>
+          <h3>Received Events ({{ events.length }})</h3>
         </div>
         
         <div class="events-list" ref="eventsList">
           <div v-if="events.length === 0" class="no-events">
-            <p>⏳ Esperando eventos...</p>
+            <p>⏳ Waiting for events...</p>
           </div>
           
           <div 
@@ -150,7 +189,7 @@
               <span class="event-time">{{ event.time }}</span>
             </div>
             <div class="event-channel">
-              <strong>Canal:</strong> {{ event.channel }}
+              <strong>Channel:</strong> {{ event.channel }}
             </div>
             <pre class="event-data">{{ event.data }}</pre>
           </div>
@@ -188,6 +227,11 @@ export default {
       echo: null,
       channel: null,
       authError: null,
+      eventName: '',
+      eventData: '{\n  "message": "Hello world"\n}',
+      sending: false,
+      sendError: null,
+      sendSuccess: false,
     }
   },
   computed: {
@@ -211,6 +255,7 @@ export default {
 
       this.authError = null
       this.connecting = true
+      this.events = []
 
       try {
         const fullChannel = this.fullChannelName
@@ -235,7 +280,7 @@ export default {
         this.subscribeToChannel(fullChannel)
       } catch (error) {
         this.connecting = false
-        this.authError = error.message || 'Error al conectar con el servidor'
+        this.authError = error.message || 'Error connecting to server'
         this.cleanup()
       }
     },
@@ -261,20 +306,27 @@ export default {
       
       this.channel
         .listen('.', (data) => {
-          this.addEvent('message', 'Mensaje Recibido', channelName, data)
+          this.addEvent('message', 'Message Received', channelName, data)
         })
         .listenToAll((eventName, data) => {
           this.addEvent('message', eventName, channelName, data)
         })
 
-      // Eventos de Pusher
+      // Listen for whisper events (client events)
+      if (channelType === 'private' || channelType === 'presence') {
+        this.channel.listenForWhisper('*', (data) => {
+          this.addEvent('whisper', 'Whisper Received', channelName, data)
+        })
+      }
+
+      // Pusher events
       this.channel.on('pusher:subscription_succeeded', () => {
         this.connecting = false
         this.connected = true
         this.currentChannel = channelName
         
         this.addEvent('system', 'pusher:subscription_succeeded', channelName, {
-          message: 'Suscripción exitosa'
+          message: 'Subscription successful'
         })
       })
 
@@ -282,14 +334,14 @@ export default {
         this.connecting = false
         this.connected = false
         
-        let errorMsg = 'Error de autenticación. Verifica tu token.'
+        let errorMsg = 'Authentication error. Check your token.'
         
         if (error?.status === 403) {
-          errorMsg = '❌ Acceso denegado (403): El token no es válido o no tienes permisos para este canal.'
+          errorMsg = '❌ Access denied (403): Token is invalid or you don\'t have permissions for this channel.'
         } else if (error?.status === 401) {
-          errorMsg = '❌ No autorizado (401): El token de autenticación es inválido o ha expirado.'
+          errorMsg = '❌ Unauthorized (401): Authentication token is invalid or has expired.'
         } else if (error?.status === 0) {
-          errorMsg = '❌ Error de conexión: No se puede conectar al servidor de autenticación. Verifica CORS.'
+          errorMsg = '❌ Connection error: Cannot connect to authentication server. Check CORS.'
         } else if (error?.error) {
           errorMsg = `❌ Error: ${error.error}`
         } else if (error?.message) {
@@ -309,6 +361,7 @@ export default {
         this.echo.leave(this.currentChannel)
       }
 
+      this.events = []
       const fullChannel = `${this.newChannelPrefix}${this.newChannelName}`
       this.subscribeToChannel(fullChannel)
       this.currentChannel = fullChannel
@@ -316,8 +369,8 @@ export default {
       this.channelName = this.newChannelName
       this.newChannelName = ''
 
-      this.addEvent('system', 'Cambio de Canal', fullChannel, {
-        message: `Cambiado a canal ${fullChannel}`
+      this.addEvent('system', 'Channel Changed', fullChannel, {
+        message: `Changed to channel ${fullChannel}`
       })
     },
 
@@ -330,10 +383,54 @@ export default {
       this.connect()
     },
 
+    async sendEvent() {
+      if (!this.eventName) return
+
+      this.sending = true
+      this.sendError = null
+      this.sendSuccess = false
+
+      try {
+        let data = {}
+        if (this.eventData.trim()) {
+          try {
+            data = JSON.parse(this.eventData)
+          } catch (e) {
+            throw new Error('Invalid JSON data format')
+          }
+        }
+
+        // Whisper works on private and presence channels
+        if (this.channelType === 'private' || this.channelType === 'presence') {
+          this.channel.whisper(this.eventName, data)
+          
+          this.addEvent('system', `Whisper sent: ${this.eventName}`, this.currentChannel, data)
+          this.sendSuccess = true
+          
+          setTimeout(() => {
+            this.sendSuccess = false
+          }, 3000)
+        } else {
+          throw new Error('Events can only be sent on private or presence channels')
+        }
+
+        this.eventName = ''
+        this.eventData = '{\n  "message": "Hello world"\n}'
+      } catch (error) {
+        this.sendError = error.message
+        setTimeout(() => {
+          this.sendError = null
+        }, 5000)
+      } finally {
+        this.sending = false
+      }
+    },
+
     disconnect() {
       this.cleanup()
       this.connected = false
       this.currentChannel = ''
+      this.events = []
     },
 
     cleanup() {
@@ -655,6 +752,139 @@ input:focus {
   background: #dc2626;
 }
 
+.send-event-form {
+  padding: 0;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  border-bottom: none;
+  color: white;
+}
+
+.send-event-header {
+  background: rgba(0, 0, 0, 0.1);
+  padding: 20px 30px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.send-event-form h3 {
+  color: white;
+  margin-bottom: 5px;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.send-event-subtitle {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 14px;
+  margin: 0;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 2fr auto;
+  gap: 20px;
+  padding: 30px;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.send-event-form .form-group {
+  flex: unset;
+  min-width: unset;
+  margin-bottom: 0;
+}
+
+.send-event-form .form-group-wide {
+  grid-column: span 1;
+}
+
+.send-event-form label {
+  color: white;
+  font-weight: 600;
+  margin-bottom: 8px;
+  display: block;
+  font-size: 14px;
+}
+
+.send-event-form input {
+  background: rgba(255, 255, 255, 0.95);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  transition: all 0.3s;
+}
+
+.send-event-form input:focus {
+  background: white;
+  border-color: white;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.2);
+}
+
+.send-event-form textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: 'Monaco', 'Menlo', monospace;
+  resize: vertical;
+  background: rgba(255, 255, 255, 0.95);
+  transition: all 0.3s;
+  min-height: 100px;
+}
+
+.send-event-form textarea:focus {
+  outline: none;
+  background: white;
+  border-color: white;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.2);
+}
+
+.button-wrapper {
+  display: flex;
+  align-items: flex-end;
+  height: 100%;
+}
+
+.btn-send {
+  padding: 14px 28px;
+  background: white;
+  color: #2563eb;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+  white-space: nowrap;
+  transition: all 0.3s;
+  height: fit-content;
+  font-size: 15px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.btn-send:hover:not(:disabled) {
+  background: #f1f5f9;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-send:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.send-event-form .error-message {
+  margin: 0 30px 20px 30px;
+  background: rgba(254, 242, 242, 0.95);
+}
+
+.send-event-form .success-message {
+  margin: 0 30px 20px 30px;
+  background: rgba(240, 253, 244, 0.95);
+}
+
 .events-container {
   padding: 30px;
 }
@@ -716,6 +946,11 @@ input:focus {
 .event-item.system {
   border-left-color: #10b981;
   background: #f0fdf4;
+}
+
+.event-item.whisper {
+  border-left-color: #f59e0b;
+  background: #fffbeb;
 }
 
 .event-header {

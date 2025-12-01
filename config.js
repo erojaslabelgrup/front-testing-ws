@@ -13,7 +13,7 @@ export default {
 
   // Configuración de autenticación
   auth: {
-    endpoint: 'http://mia-v2.test/api/broadcasting/auth', // URL completa del endpoint de autenticación
+    endpoint: 'http://mia-v2.test/broadcasting/auth', // URL completa del endpoint de autenticación
   },
 
   // Configuración de canales

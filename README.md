@@ -1,198 +1,246 @@
 # 🔌 WebSocket Tester - Laravel Reverb
 
-Aplicación Vue 2 para probar conexiones WebSocket con Laravel Reverb en entorno local.
+Vue 2 application for testing WebSocket connections with Laravel Reverb in local environment.
 
-> ⚠️ **Proyecto para uso exclusivo en LOCAL** - Diseñado para hacer pruebas de WebSocket en desarrollo
+> ⚠️ **Project for LOCAL use only** - Designed for WebSocket testing in development
 
 ---
 
-## 🚀 Instalación y Configuración
+## 🚀 Installation and Configuration
 
-### 1️⃣ Instalar dependencias
+### 1️⃣ Install dependencies
 ```bash
 npm install
 ```
 
-### 2️⃣ Configurar la conexión WebSocket
+### 2️⃣ Configure WebSocket connection
 
-Edita el archivo **`config.js`** en la raíz del proyecto con tus valores locales:
+Edit the **`config.js`** file in the project root with your local values:
 
 ```javascript
 export default {
   websocket: {
-    host: 'mia-v2.test',      // Tu dominio local de Laravel
-    port: 6001,                // Puerto de Reverb (por defecto 6001)
-    protocol: 'ws',            // Usar 'ws' en local
-    forceTLS: false,           // false para desarrollo local
+    host: 'mia-v2.test',      // Your Laravel local domain
+    port: 6001,                // Reverb port (default 6001)
+    protocol: 'ws',            // Use 'ws' for local
+    forceTLS: false,           // false for local development
   },
 
-  // ⚠️ IMPORTANTE: Obtén este valor de tu .env de Laravel
-  // Variable: REVERB_APP_KEY o PUSHER_APP_KEY
-  appKey: 'TU_APP_KEY_AQUI', 
+  // ⚠️ IMPORTANT: Get this value from your Laravel .env
+  // Variable: REVERB_APP_KEY or PUSHER_APP_KEY
+  appKey: 'YOUR_APP_KEY_HERE', 
+
+  auth: {
+    endpoint: 'http://mia-v2.test/broadcasting/auth', // Full authentication endpoint URL
+  },
 
   channels: {
-    prefix: 'presence-',       // Prefijo de tus canales
-    defaultChannel: 'channel', // Canal por defecto al conectar
+    prefix: 'presence-',       // Your channel prefix
+    defaultChannel: 'channel', // Default channel on connect
   }
 }
 ```
 
-#### 🔍 ¿Dónde encontrar el APP_KEY?
+#### 🔍 Where to find the APP_KEY?
 
-En tu proyecto Laravel, revisa el archivo `.env`:
+In your Laravel project, check the `.env` file:
 ```env
-REVERB_APP_KEY=tu-app-key-aqui
+REVERB_APP_KEY=your-app-key-here
 ```
 
-### 3️⃣ Levantar el proyecto
+### 3️⃣ Start the project
 ```bash
 npm run dev
 ```
 
-El servidor se levantará en: **http://localhost:3000**
+The server will start at: **http://localhost:3000**
 
 ---
 
-## 🎮 Cómo usar
+## 🎮 How to Use
 
-### Pantalla de Conexión
-1. Ingresa tu **token de acceso** (Bearer token de tu aplicación Laravel)
-2. Ingresa el **nombre del canal** (solo el nombre, sin el prefijo)
-   - Ejemplo: Si tu canal es `presence-chat`, ingresa solo `chat`
-3. Click en **Conectar**
+### Connection Screen
+1. Configure the connection:
+   - **Host**: Your Laravel server domain (e.g., `mia-v2.test`)
+   - **Port**: WebSocket port (default `6001`)
+   - **APP KEY**: Your Reverb key (get it from Laravel's `.env`)
+2. Enter your **access token** (Bearer token from your Laravel application)
+3. Select the **channel type** (Public, Private, or Presence)
+4. Enter the **channel name** (name only, without prefix)
+   - Example: If your channel is `presence-chat`, enter only `chat`
+5. Click **Connect**
 
-### Panel de Eventos
-Una vez conectado verás:
-- 🟢 **Estado de conexión** y canal actual en el header
-- 📥 **Eventos en tiempo real** que se reciben del WebSocket
-- 🔄 **Cambiar de canal** sin desconectar
-- 🔑 **Cambiar token** (reconecta automáticamente)
-- 🗑️ **Limpiar eventos** para vaciar el historial
+> 💡 **Note**: Host, Port, and APP KEY values come pre-configured from `config.js`, but you can modify them directly in the form without editing code.
 
-### Tipos de eventos mostrados
-- **Verde** 🟢 Eventos del sistema (conexión exitosa, suscripción)
-- **Azul** 🔵 Mensajes/eventos normales
-- **Rojo** 🔴 Errores de conexión o suscripción
+### Events Panel
+Once connected you'll see:
+- 🟢 **Connection status** and current channel in the header
+- 📤 **Send Event** section to send client events (whisper)
+- 📥 **Real-time events** received from WebSocket
+- 🔄 **Change channel** without disconnecting (automatically clears events)
+- 🔑 **Change token** (reconnects automatically and clears events)
+- 🗑️ **Clear events** to manually empty the history
+- 🔌 **Disconnect** (automatically clears events)
+
+### Event Types Displayed
+- **Green** 🟢 System events (successful connection, subscription)
+- **Blue** 🔵 Normal messages/events
+- **Orange** 🟠 Whisper events (client-to-client)
+- **Red** 🔴 Connection or subscription errors
+
+### Sending Events
+The **Send Event** section allows you to send client-to-client events (whispers):
+- **Event Name**: Name of the event to broadcast
+- **Event Data**: JSON payload to send
+- Only works on **private** and **presence** channels
+- Events are sent directly between clients without going through the backend
 
 ---
 
-## ⚙️ Configuración Detallada
+## ⚙️ Detailed Configuration
 
-### Archivo `config.js`
+### `config.js` File
 
-| Parámetro | Descripción | Valor Local |
+| Parameter | Description | Local Value |
 |-----------|-------------|-------------|
-| `websocket.host` | Dominio de tu Laravel | `mia-v2.test` |
-| `websocket.port` | Puerto del WebSocket | `6001` |
-| `websocket.protocol` | Protocolo de conexión | `ws` (local) / `wss` (producción) |
-| `websocket.forceTLS` | Forzar TLS/SSL | `false` en local |
-| `appKey` | App Key de Reverb | Obtenlo de tu `.env` |
-| `channels.prefix` | Prefijo automático | `presence-`, `private-`, etc |
-| `channels.defaultChannel` | Canal por defecto | Cualquier nombre |
+| `websocket.host` | Your Laravel domain | `mia-v2.test` |
+| `websocket.port` | WebSocket port | `6001` |
+| `websocket.protocol` | Connection protocol | `ws` (local) / `wss` (production) |
+| `websocket.forceTLS` | Force TLS/SSL | `false` locally |
+| `appKey` | Reverb App Key | Get it from your `.env` |
+| `auth.endpoint` | Authentication endpoint | Full URL to auth route |
+| `channels.prefix` | Automatic prefix | `presence-`, `private-`, etc |
+| `channels.defaultChannel` | Default channel | Any name |
 
-### Cambiar configuración sin editar código
+### Change Configuration Without Editing Code
 
-Todo está centralizado en `config.js`, modifica solo ese archivo según tus necesidades.
+You have two options to configure the connection:
+
+1. **From the form** (recommended): Edit Host, Port, and APP KEY fields directly on the login screen
+2. **From `config.js`**: Modify the default values that will appear pre-loaded in the form
 
 ---
 
-## 🧪 Pruebas en Local
+## 🧪 Local Testing
 
-### Requisitos previos
-1. ✅ Proyecto Laravel corriendo (con Reverb configurado)
-2. ✅ Reverb server activo:
+### Prerequisites
+1. ✅ Laravel project running (with Reverb configured)
+2. ✅ Reverb server active:
    ```bash
    php artisan reverb:start
    ```
-3. ✅ Token válido generado en tu aplicación Laravel
+3. ✅ Valid token generated in your Laravel application
 
-### Flujo de pruebas típico
+### Typical Testing Flow
 
-1. **Inicia Reverb** en tu proyecto Laravel
-2. **Levanta este front** con `npm run dev`
-3. **Obtén un token** de tu aplicación Laravel (autenticación)
-4. **Conéctate** desde la interfaz
-5. **Dispara eventos** desde Laravel y obsérvalos aquí en tiempo real
+1. **Start Reverb** in your Laravel project
+2. **Start this frontend** with `npm run dev`
+3. **Get a token** from your Laravel application (authentication)
+4. **Connect** from the interface
+5. **Trigger events** from Laravel and observe them here in real-time
+6. **Send whisper events** to communicate between connected clients
 
-### Ejemplo: Disparar evento desde Laravel
+### Example: Trigger Event from Laravel
 
 ```php
-// En tu código Laravel
-broadcast(new MiEvento($data))->toOthers();
+// In your Laravel code
+broadcast(new MyEvent($data))->toOthers();
 ```
 
-Verás el evento aparecer instantáneamente en el panel.
+You'll see the event appear instantly in the panel.
+
+### Example: Send Whisper Event
+
+1. Connect two browser tabs to the same private/presence channel
+2. In one tab, use the **Send Event** form
+3. The other tab will receive the whisper event in real-time
 
 ---
 
-## 📦 Comandos Disponibles
+## 📦 Available Commands
 
 ```bash
-# Desarrollo - Hot reload habilitado
+# Development - Hot reload enabled
 npm run dev
 
-# Build para producción (si lo necesitas)
+# Build for production (if needed)
 npm run build
 
-# Previsualizar build
+# Preview build
 npm run preview
 ```
 
 ---
 
-## 🛠️ Stack Tecnológico
+## 🛠️ Tech Stack
 
-- **Vue 2** - Framework JavaScript
-- **Vite** - Build tool y dev server
-- **Laravel Echo** - Cliente WebSocket para Laravel
-- **Pusher JS** - Librería de Pusher (compatible con Reverb)
-- **Laravel Reverb** - WebSocket server de Laravel
+- **Vue 2** - JavaScript framework
+- **Vite** - Build tool and dev server
+- **Laravel Echo** - WebSocket client for Laravel
+- **Pusher JS** - Pusher library (compatible with Reverb)
+- **Laravel Reverb** - Laravel's WebSocket server
 
 ---
 
 ## 🐛 Troubleshooting
 
-### No se conecta al WebSocket
-- ✅ Verifica que Reverb esté corriendo: `php artisan reverb:start`
-- ✅ Comprueba el puerto en `config.js` (debe ser 6001 por defecto)
-- ✅ Asegúrate que el `appKey` coincida con tu `.env`
+### Cannot Connect to WebSocket
+- ✅ Verify Reverb is running: `php artisan reverb:start`
+- ✅ Check port in `config.js` (should be 6001 by default)
+- ✅ Ensure `appKey` matches your `.env`
 
-### Error de suscripción al canal
-- ✅ Verifica que el token sea válido
-- ✅ Comprueba que el usuario tenga permisos para el canal
-- ✅ Revisa las rutas de broadcasting en Laravel (`routes/channels.php`)
+### Channel Subscription Error
+- ✅ Verify token is valid
+- ✅ Check user has permissions for the channel
+- ✅ Review broadcasting routes in Laravel (`routes/channels.php`)
 
-### No aparecen eventos
-- ✅ Confirma que estás en el canal correcto
-- ✅ Verifica que el evento se esté disparando desde Laravel
-- ✅ Chequea la consola del navegador por errores
+### No Events Appearing
+- ✅ Confirm you're on the correct channel
+- ✅ Verify the event is being triggered from Laravel
+- ✅ Check browser console for errors
 
-### Problemas de CORS
-- ✅ En Laravel, configura CORS en `config/cors.php`
-- ✅ Asegúrate que `localhost:3000` esté permitido
+### Cannot Send Events
+- ✅ Ensure you're connected to a **private** or **presence** channel
+- ✅ Verify the JSON format is valid
+- ✅ Check that another client is connected to receive the event
 
----
-
-## 📝 Notas Importantes
-
-- 🔒 Los canales `presence-*` requieren autenticación
-- 🔒 Los canales `private-*` también requieren autenticación  
-- 📡 Los canales públicos no necesitan autenticación
-- 🔑 El token debe ser un Bearer token válido de Laravel
-- ⏱️ Los eventos se muestran en orden inverso (más reciente arriba)
-- 💾 El historial se limpia al refrescar la página
+### CORS Issues
+- ✅ In Laravel, configure CORS in `config/cors.php`
+- ✅ Make sure `localhost:3000` is allowed
 
 ---
 
-## 🎯 Uso Recomendado
+## 📝 Important Notes
 
-Este proyecto es ideal para:
-- ✅ Testear eventos WebSocket en desarrollo
-- ✅ Debuggear problemas de broadcasting
-- ✅ Verificar permisos de canales
-- ✅ Probar tokens de autenticación
-- ✅ Monitorear eventos en tiempo real
+- 🔒 `presence-*` channels require authentication
+- 🔒 `private-*` channels also require authentication  
+- 📡 Public channels don't need authentication
+- 🔑 Token must be a valid Laravel Bearer token
+- ⏱️ Events are shown in reverse order (most recent on top)
+- 🧹 Events are automatically cleared when:
+  - Disconnecting
+  - Changing channels
+  - Changing tokens
+  - Connecting/Reconnecting
+- 💾 You can also clear events manually with the "Clear Events" button
+- 📤 Whisper events (client events):
+  - Only work on private and presence channels
+  - Are sent directly between clients
+  - Don't go through the Laravel backend
+  - Perfect for real-time client-to-client communication
 
 ---
 
-**¡Listo para probar tu WebSocket! 🚀**
+## 🎯 Recommended Use
+
+This project is ideal for:
+- ✅ Testing WebSocket events in development
+- ✅ Debugging broadcasting issues
+- ✅ Verifying channel permissions
+- ✅ Testing authentication tokens
+- ✅ Monitoring real-time events
+- ✅ Testing client-to-client communication with whispers
+
+---
+
+**Ready to test your WebSocket! 🚀**
