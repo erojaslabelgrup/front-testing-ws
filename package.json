@@ -1,0 +1,22 @@
+{
+  "name": "front-ws",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "keywords": ["websocket", "reverb", "laravel", "vue"],
+  "author": "",
+  "license": "ISC",
+  "description": "WebSocket tester para Laravel Reverb con Vue 2",
+  "dependencies": {
+    "@vitejs/plugin-vue2": "^2.3.4",
+    "laravel-echo": "^2.2.6",
+    "pusher-js": "^8.4.0",
+    "vite": "^7.2.4",
+    "vue": "^2.7.16",
+    "vue-template-compiler": "^2.7.16"
+  }
+}
